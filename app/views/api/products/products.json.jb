@@ -1,6 +1,5 @@
-@all_products.map do |product|
+@each_product.map {|product|
   {id: product.id,
   name: product.name,
   price: product.price,
-  description: product.description}
-end
+  description: product.description}}
