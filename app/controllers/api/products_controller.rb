@@ -1,22 +1,68 @@
 class Api::ProductsController < ApplicationController
-  def each_product
-    @each_product = Product.all
-    render "products.json.jb" 
+
+  before_action :authenticate_admin, except: [:index, :show]
+
+  # def index
+  #   @products = Product.all
+
+  #   if params[:search]
+  #     @products = @products.where("name iLIKE ?", "%#{params[:search]}%")
+  #   end
+
+  #   if params[:sort] == "price"
+  #     if params[:sort_order] == "desc"
+  #       @products = @products.order(price: :desc)
+  #     end
+  #     @products = @products.order(:price)
+  #   else
+  #     @products = @products.order(:id)
+  #   end
+
+  #   render "index.json.jb"
+  # end
+
+  def index
+    @products = Product
+      .title_search(params[:search])
+      .discounted(params[:discount])
+      .sorted(params[:sort], params[:sort_order])
+    render "index.json.jb"
+  end
+  
+  def show
+    @product = Product.find_by(id: params["id"])
+    render "show.json.jb"
   end
 
-  def product_one
-    @one_product = Product.first
-    render "any_product.json.jb" 
+  def create
+    @product = Product.new(name: params[:name], 
+      price: params[:price], 
+      description: params[:description],
+      supplier_id: params[:supplier_id])
+    if @product.save
+      render "show.json.jb"
+    else
+      render json: { errors: @product.errors.full_messages }, status: :unprocessable_entity
+    end
   end
 
-  def product_two
-    @one_product = Product.second
-    render "any_product.json.jb" 
+  def update
+    @product = Product.find_by(id: params[:id])
+    @product.name = params[:name] || @product.name
+    @product.price = params[:price] || @product.price
+    @product.description = params[:description] || @product.description
+    @product.supplier_id = params[:supplier_id] || @product.supplier_id
+    if @product.save
+      render "show.json.jb"
+    else
+      render json: { errors: @product.errors.full_messages }, status: :unprocessable_entity
+    end
   end
 
-  def product_three
-    @one_product = Product.three
-    render "any_product.json.jb" 
+  def destroy
+    product = Product.find_by(id: params["id"])
+    product.destroy
+    render json: {message: "PRODUCT DELETED"}
   end
 
 end

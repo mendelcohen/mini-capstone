@@ -1,0 +1,4 @@
+
+@products.map do |product|
+  render partial: "product.json.jb", locals: { product: product }
+end
