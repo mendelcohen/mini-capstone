@@ -14,12 +14,12 @@ class ProductsController < ApplicationController
       price: params[:price],
       description: params[:description],
       brand: params[:brand],
-      supplier_id: params[:supplier_
+      supplier_id: params[:supplier_id]
     )
     if product.save
       redirect_to "/products/#{product.id}"
     else
-      render html: 
+      render html: {} 
     end
   end
 
