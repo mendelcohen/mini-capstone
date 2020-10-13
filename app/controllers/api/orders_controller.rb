@@ -8,15 +8,25 @@ class Api::OrdersController < ApplicationController
   end
 
   def create
+    carted_products = current_user.carted_products.where(status: "carted")
+    
+    calculated_subtotal = 0
+    carted_products.map do |carted_product|
+      calculated_subtotal += carted_product.product.price * carted_product.quantity
+    end
+
+    calculated_tax = calculated_subtotal * 0.09
+    calculated_total = calculated_subtotal + calculated_tax
+
     @order = Order.new(
       user_id: current_user.id,
-      product_id: params[:product_id],
-      quantity: params[:quantity]
+      subtotal: calculated_subtotal,
+      tax: calculated_tax,
+      total: calculated_total
     )
-    @order.subtotal = @order.quantity * @order.product.price
-    @order.tax = @order.subtotal * 0.09
-    @order.total = @order.tax + @order.subtotal
+    
     if @order.save
+      carted_products.update_all(status: "purchased", order_id: @order.id)
       render "show.json.jb"
     else
       render json: { errors: @order.errors.full_messages}, status: unprocessable_entity
